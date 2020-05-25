@@ -7,21 +7,43 @@ import argparse
 import os
 import joblib
 
-def extract_data(input_file) :
-    outputfile = input_file[:-6] + "_complete.csv"
-    regions = ['united states' , 'india', 'singapore' , 'united kingdom']
-    usa_states = joblib.load('us_states.pkl')
-    ind_states = joblib.load('indian_states.pkl')
-    uk_counties = joblib.load('uk_counties.pkl')
-    sgp_dist = joblib.load('sgp_dist.pkl')
+country_pkls = {
+    'usa' : ['united states' , 'us_states.pkl'],
+    'ind' : ['india' , 'indian_states.pkl'],
+    'uk' : ['united kingdom' , 'uk_states.pkl'],
+    'sgp' : ['singapore' , 'sgp_states.pkl'],
+    'arg' : ['argentina' , 'argentina_states.pkl'],
+    'aus' : ['australia' , 'australia_states.pkl'],
+    'austria' : ['austria' , 'austria_states.pkl'],
+    'can' : ['canada' , 'canada_states.pkl'],
+    'chile' : ['chile' , 'chile_states.pkl'],
+    'colombia' : ['colombia' , 'colombia_states.pkl'],
+    'costa' : ['costa rica' , 'costarica_states.pkl'],
+    'fra' : ['france' , 'france_states.pkl'],
+    'ger' : ['germany' , 'germany_states.pkl'],
+    'ita' : ['italy' , 'italy_states.pkl'],
+    'netherlands' : ['netherlands' , 'netherlands_states.pkl'],
+    'nz' : ['new zealand' , 'newzealand_states.pkl'],
+    'rus' : ['russia' , 'russia_states.pkl'],
+    'esp' : ['spain' , 'spain_states.pkl'],
+    'swiss' : ['switzerland' , 'switzerland_states.pkl'],
+    'ven' : ['venezuela' , 'venezuela_states.pkl'],
+}
+
+
+def extract_data(input_file, region) :
+    outputfile = input_file[:-6] +"_"+region+"_complete.csv"
+    states = joblib.load(country_pkls[region][1])
+    print(outputfile)
     
-    with open(input_file, 'r') as f , open(outputfile, mode='w') as tweet_csv :
-        print("Data Extraction in progress... for file " + input_file)
+    with open(input_file,encoding='latin1',mode='r') as f , open(outputfile, mode='w') as tweet_csv :
+        print("Data Extraction in progress... for file " + input_file + " and country:" + region)
         tweet_writer = csv.writer(tweet_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-        tweet_writer.writerow(['created_at', 'month', 'date', 'time', 'day','tweet_id', 'country', 'location','coordinates', 'full_text', 'language', 'retweet_count', 'favourite_count', 'reply_count'])
+        tweet_writer.writerow(['created_at', 'month', 'date', 'time', 'day','tweet_id', 'country', 'location', 'full_text', 'language', 'retweet_count', 'favourite_count', 'reply_count'])
 
         for cnt, line in enumerate(f):
             region_flag = 0 
+            # tweet = json.loads(line) # load it as Python dict
             try:
                 tweet = json.loads(line) # load it as Python dict
             except:
@@ -53,34 +75,24 @@ def extract_data(input_file) :
                 l = l.lower()
                 temp = l.split(',')
                 for i in temp :
-                    if(i in usa_states) :
-                        location = 'united states'
+                    if(i.lower() in states) :
+                        location = country_pkls[region][0]
                         break 
-                    elif(i in sgp_dist) :
-                        location = 'singapore'
-                        break
-                    elif(i in uk_counties) :
-                        location = 'united kingdom'
-                        break
-                    elif(i in ind_states) :
-                        location = 'india'
-                        break
-                        
             except :
                 location = 'none'
                     
-            if(country in regions) :
+            if(country == country_pkls[region][0] ) :
                 region_flag+=1
-            if(location in regions) :
+            if(location == country_pkls[region][0]) :
                 region_flag+=1
             
             if(region_flag == 0) :
                 continue
                 
-            try :
-                coordinates = tweet['coordinates']
-            except:
-                coordinates = 'none'
+            # try :
+            #     coordinates = tweet['coordinates']
+            # except:
+            #     coordinates = 'none'
 
             try :
                 full_text = tweet['full_text']
@@ -111,7 +123,7 @@ def extract_data(input_file) :
                 reply_count = 'none'
 
             tweet_writer = csv.writer(tweet_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-            tweet_writer.writerow([created_at, month, date, time, day, tweet_id, country, location, coordinates, full_text, language, retweet_count, favourite_count, reply_count])
+            tweet_writer.writerow([created_at, month, date, time, day, tweet_id, country, location, full_text, language, retweet_count, favourite_count, reply_count])
 
     print("completed!")
 
@@ -123,15 +135,26 @@ if __name__ == "__main__":
     results = parser.parse_args()
 
     directory = results.dir
+    print(directory)
     
+    region_list = ['usa','ind','uk', 'sgp', 'arg','aus','austria','can', 'chile', 'colombia','costa', 'fra', 'ger', 'ita', 'netherlands', 'nz', 'rus', 'esp', 'swiss', 'ven']
+
     to_be_converted = []
     for _,_, files in os.walk(directory) :
         for f in files :
             ext = f.split('.')[-1]
             if(ext=='jsonl') :
+                #file_name = directory+f
                 to_be_converted.append(f)
-    
+    print(to_be_converted)
+
     for f in to_be_converted :
-        extract_data(f)
+        for region in region_list :
+            extract_data(f, region)
+            # print(region)
+            # print(country_pkls[region][0])
+            # path = './state_pkls/'+country_pkls[region][1]
+            # states = joblib.load(path)
+            # print(states)
     
     print("Script Execution Complete!")

@@ -3,14 +3,19 @@ import argparse
 import os 
 
 def extract_from_file(filename) :
+    output_file= filename.split('/')[2]
+    output_file = output_file.strip("_clean-dataset.tsv")
+    # print(output_file)
     tweet_ids = pd.read_csv(filename , sep='\t')
     tweet_ids = tweet_ids.drop(['date','time'], axis=1)
-    output_file = filename.split('.')[0] + "_tweetids.csv"
     tweet_ids.to_csv(output_file, header=False, index=False)
 
 def extract_from_folder(foldername) :
-    for _,_,files in os.walk(foldername) :
-        extract_from_file(files)
+	for _,_,files in os.walk(foldername) :
+		print("files read")
+	for f in files :
+		file_name = foldername +f
+		extract_from_file(file_name)
 
 
 if __name__ == "__main__":
@@ -26,7 +31,7 @@ if __name__ == "__main__":
         filename = results.filename
         extract_from_file(filename)
     elif(mode ==1) :
-        foldername = results.foldername
+        foldername = results.directory
         extract_from_folder(foldername)
     else :
         print("Invalid Output. Please run with proper mode")
