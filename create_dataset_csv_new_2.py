@@ -43,7 +43,7 @@ def extract_data(input_file, region) :
     states = joblib.load('./state_pkls/'+country_pkls[region][1])
     print(outputfile)
     
-    with open(input_file,encoding='latin1',mode='r') as f , open(outputfile, mode='w') as tweet_csv :
+    with open(input_file,encoding='latin1',mode='r') as f , open(outputfile,encoding='latin1', mode='w') as tweet_csv :
         print("Data Extraction in progress... for file " + input_file + " and country:" + region)
         tweet_writer = csv.writer(tweet_csv, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
         tweet_writer.writerow(['created_at', 'month', 'date', 'time', 'day','tweet_id', 'country', 'location', 'full_text', 'language', 'retweet_count', 'favourite_count', 'reply_count'])
